@@ -4,12 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LearningPhase
+namespace MLFactorGraph
 {
-    class Program
+    public class Dataset
     {
-        static void Main(string[] args)
-        {
-        }
     }
 }
