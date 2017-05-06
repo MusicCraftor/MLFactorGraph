@@ -12,8 +12,8 @@ namespace MobileMLFactorGraph
 {
     public class MobileMLFGraph : MLFGraph
     {
-        public MobileMLFGraph(DatabaseConnection database)
-            : base()
+        public MobileMLFGraph(DatabaseConnection database, bool bidirectionEdge = false)
+            : base(bidirectionEdge)
         {
             dataset = new MobileDataset(database);
             base.SetDataSource(dataset);
@@ -100,7 +100,7 @@ namespace MobileMLFactorGraph
             }
             foreach (KeyValuePair<string, List<Int64>> pair in rawColleagues)
             {
-                if (pair.Value.Count == 1)
+                if (pair.Value.Count != 1)
                 {
                     Group g = base.AddGroup(MobileLabel.COLLEAGUE, pair.Value.Select(x => nodeIdMapping[x]).ToList());
                     g.Attribute[MobileAttribute.GroupId] = pair.Key;

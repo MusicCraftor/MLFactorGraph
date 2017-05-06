@@ -9,7 +9,23 @@ namespace MLFactorGraph
     public class Edge : Factorable
     {
         public uint Id { get; protected set; }
-        public short Label { get; set; }
+
+        private short label;
+        public short Label
+        {
+            get
+            {
+                return label;
+            }
+            set
+            {
+                this.label = value;
+                if (DualEdge != null)
+                {
+                    DualEdge.label = value;
+                }
+            }
+        }
 
         public Node From { get; protected set; }
         public Node To { get; protected set; }
@@ -20,7 +36,9 @@ namespace MLFactorGraph
 
         public MLFGraph Graph { get; protected set; }
 
-        public Edge(MLFGraph graph, short label, Node from, Node to, Group group = null) : base(graph, graph.DataSource)
+        public Edge DualEdge { get; internal set; }
+
+        public Edge(MLFGraph graph, short label, Node from, Node to, Group group = null, Edge dualEdge = null) : base(graph, graph.DataSource)
         {
             this.Id = graph.AllocateEdgeId();
             this.Label = label;
@@ -31,6 +49,8 @@ namespace MLFactorGraph
             this.Group = group;
 
             this.Graph = graph;
+
+            this.DualEdge = dualEdge;
 
             from.OutEdge.Add(this);
             to.InEdge.Add(this);

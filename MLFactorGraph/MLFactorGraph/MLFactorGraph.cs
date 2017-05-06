@@ -9,7 +9,7 @@ namespace MLFactorGraph
 {
     public class MLFGraph
     {
-        public MLFGraph()
+        public MLFGraph(bool bidirectionEdge)
         {
             // Layer initialization
             NodeLayer = new List<Node>();
@@ -23,6 +23,8 @@ namespace MLFactorGraph
 
             // Data Source Initialization
             this.DataSource = null;
+
+            this.BidirectionEdge = bidirectionEdge;
 
             // Lambda Initialization
             Lambda = new Dictionary<int, double>();
@@ -51,6 +53,14 @@ namespace MLFactorGraph
         public List<Node> NodeLayer { get; set; }
         public List<Edge> EdgeLayer { get; set; }
         public List<Group> GroupLayer { get; set; }
+        public enum Layer
+        {
+            AllLayer = 0,
+            NodeLayer,
+            EdgeLayer,
+            GroupLayer
+        }
+        public bool BidirectionEdge { get; private set; }
 
         public Node AddNode()
         {
@@ -60,6 +70,11 @@ namespace MLFactorGraph
         }
         public Edge AddEdge(uint fromId, uint toId, short label)
         {
+            if (HasEdge(fromId, toId))
+            {
+                return null;
+            }
+
             Node from = FindNode(fromId);
             Node to = FindNode(toId);
             if ((from == null) || (to == null))
@@ -69,10 +84,23 @@ namespace MLFactorGraph
 
             Edge e = new Edge(this, label, from, to);
             EdgeLayer.Add(e);
+            if (this.BidirectionEdge)
+            {
+                Edge dualE = new Edge(this, label, to, from);
+                EdgeLayer.Add(dualE);
+
+                e.DualEdge = dualE;
+                dualE.DualEdge = e;
+            }
             return e;
         }
         public Group AddGroup(short label, List<uint> nodeIds)
         {
+            if (HasGroup(nodeIds))
+            {
+                return null;
+            }
+
             List<Node> nodeList = nodeIds.Select<uint, Node>(delegate (uint id)
             {
                 Node v = FindNode(id);
@@ -148,7 +176,46 @@ namespace MLFactorGraph
             }
             return null;
         }
+        private bool HasNode(uint id)
+        {
+            return NodeLayer.Exists(x => x.Id == id);
+        }
+        private bool HasEdge(uint fromId, uint toId)
+        {
+            return EdgeLayer.Exists(x => x.From.Id == fromId && x.To.Id == toId);
+        }
+        private bool HasGroup(List<uint> idList)
+        {
+            return GroupLayer.Exists(delegate (Group g)
+            {
+                bool memberNotFound = false;
+                foreach (uint id in idList)
+                {
+                    if (!g.Member.Exists(x => x.Id == id))
+                    {
+                        memberNotFound = true;
+                    }
+                }
+                if (!memberNotFound)
+                {
+                    return true;
+                }
+                return false;
+            });
+        }
 
+        public void AddMemberTo(List<Node> nodes, Group to)
+        {
+            to.AddMember(nodes);
+        }
+        public void AddMemberTo(List<uint> nodeIds, Group to)
+        {
+            List<Node> nodes = NodeLayer.FindAll(delegate (Node v)
+            {
+                return nodeIds.Exists(x => v.Id == x);
+            });
+            AddMemberTo(nodes, to);
+        }
         public void MoveMember(List<Node> nodes, Group from, Group to)
         {
             from.RemoveMember(nodes);
@@ -163,15 +230,9 @@ namespace MLFactorGraph
             MoveMember(nodes, from, to);
         }
 
-        public Dictionary<int, double> Lambda { get; protected set; }
+        public List<int> Labels { get; protected set; }
 
-        public enum Layer
-        {
-            AllLayer = 0,
-            NodeLayer,
-            EdgeLayer,
-            GroupLayer
-        }
+        public Dictionary<int, double> Lambda { get; protected set; }
 
         public void AddFactor(int factorId, Factorable.Factor factorFunction, Layer layer)
         {
