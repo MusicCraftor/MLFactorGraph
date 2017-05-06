@@ -14,18 +14,22 @@ namespace MLFactorGraph
         public List<Node> Member { get; protected set; }
         public List<Edge> MemberEdge { get; protected set; }
 
+        public Dictionary<int, object> Attribute { get; set; }
+
         public MLFGraph Graph { get; protected set; }
 
-        public Group(MLFGraph graph, short label, List<Node> memberList = null) : base(graph)
+        public Group(MLFGraph graph, short label, List<Node> memberList = null) : base(graph, graph.DataSource)
         {
             this.Id = graph.AllocateGroupId();
             this.Label = label;
 
             this.Member = (memberList == null) ? new List<Node>() : memberList;
             this.MemberEdge = new List<Edge>();
-            this.AddMember(memberList);
+            BuildMemberEdge();
 
             this.Graph = graph;
+
+            this.Attribute = new Dictionary<int, object>();
         }
 
         public bool InGroup(Node v)
@@ -42,7 +46,6 @@ namespace MLFactorGraph
             l.Add(v);
             AddMember(l);
         }
-
         internal void AddMember(List<Node> nodes)
         {
             foreach (Node v in nodes)
@@ -53,6 +56,7 @@ namespace MLFactorGraph
                     if (this.InGroup(e.From))
                     {
                         e.Group = this;
+                        e.Label = this.Label;
                         this.MemberEdge.Add(e);
                     }
                 }
@@ -61,6 +65,7 @@ namespace MLFactorGraph
                     if (this.InGroup(e.To))
                     {
                         e.Group = this;
+                        e.Label = this.Label;
                         this.MemberEdge.Add(e);
                     }
                 }
@@ -69,14 +74,13 @@ namespace MLFactorGraph
             }
         }
 
-        internal void DeleteMember(Node v)
+        internal void RemoveMember(Node v)
         {
             List<Node> l = new List<Node>();
             l.Add(v);
-            DeleteMember(l);
+            RemoveMember(l);
         }
-
-        internal void DeleteMember(List<Node> nodes)
+        internal void RemoveMember(List<Node> nodes)
         {
             foreach (Node v in nodes)
             {
@@ -111,16 +115,27 @@ namespace MLFactorGraph
 
             foreach (Node v in this.Member)
             {
-                foreach (Edge e in v.InEdge)
+                foreach (Edge e in v.OutEdge)
                 {
-                    if (this.InGroup(e.From))
+                    if (this.InGroup(e.To))
                     {
                         e.Group = this;
+                        e.Label = this.Label;
                         this.MemberEdge.Add(e);
                     }
                 }
-                /* No need to add OutEdge, for those valid has already been added in the InEdge phase */
+                /* No need to add InEdge, for those valid has already been added in the OutEdge phase */
             }
+        }
+
+        public void SetInvalid()
+        {
+            this.RemoveMember(this.Member);
+            this.Graph = null;
+        }
+        public bool IsInvalid()
+        {
+            return this.Graph == null;
         }
     }
 }

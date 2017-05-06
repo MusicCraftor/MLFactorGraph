@@ -17,7 +17,9 @@ namespace MLFactorGraph
         public List<Edge> InEdge { get; protected set; }
         public List<Edge> OutEdge { get; protected set; }
 
-        public Node(MLFGraph graph, Group group = null) : base(graph)
+        public Dictionary<int, object> Attribute { get; set; }
+
+        public Node(MLFGraph graph, Group group = null) : base(graph, graph.DataSource)
         {
             this.Id = graph.AllocateNodeId();
 
@@ -27,13 +29,31 @@ namespace MLFactorGraph
 
             this.InEdge = new List<Edge>();
             this.OutEdge = new List<Edge>();
+
+            this.Attribute = new Dictionary<int, object>();
         }
 
-        public Node(Node v) : base(v.Graph)
+        public void SetInvalid()
         {
-            this.Id = v.Id;
-            this.Group = v.Group;
-            this.Graph = v.Graph;
+            foreach (Edge e in this.InEdge)
+            {
+                e.SetInvalid();
+            }
+            foreach (Edge e in this.OutEdge)
+            {
+                e.SetInvalid();
+            }
+
+            if (this.Group != null)
+            {
+                this.Group.RemoveMember(this);
+            }
+
+            this.Graph = null;
+        }
+        public bool IsInvalid()
+        {
+            return this.Graph == null;
         }
     }
 }

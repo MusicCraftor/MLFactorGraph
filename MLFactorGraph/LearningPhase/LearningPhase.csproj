@@ -33,6 +33,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="MySql.Data, Version=6.9.9.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -43,12 +44,25 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MobileDataset.cs" />
+    <Compile Include="MobileConstants.cs" />
     <Compile Include="MobileMLFGraph.cs" />
+    <Compile Include="MobileStructure.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MLFactorGraph\MLFactorGraph.csproj">
+      <Project>{9c2765c2-f0c5-46d3-9424-100531d35a6a}</Project>
+      <Name>MLFactorGraph</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ResearchUtils\ResearchUtils.csproj">
+      <Project>{e6ebbb54-9821-4344-9a72-1f3d6db8eda0}</Project>
+      <Name>ResearchUtils</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

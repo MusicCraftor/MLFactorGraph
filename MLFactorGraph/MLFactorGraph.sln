@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LearningPhase", "LearningPh
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PredictionPhase", "PredictionPhase\PredictionPhase.csproj", "{0A2A0108-6CBE-4298-914C-9708764D365B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResearchUtils", "ResearchUtils\ResearchUtils.csproj", "{E6EBBB54-9821-4344-9A72-1F3D6DB8EDA0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{0A2A0108-6CBE-4298-914C-9708764D365B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0A2A0108-6CBE-4298-914C-9708764D365B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0A2A0108-6CBE-4298-914C-9708764D365B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E6EBBB54-9821-4344-9A72-1F3D6DB8EDA0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E6EBBB54-9821-4344-9A72-1F3D6DB8EDA0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E6EBBB54-9821-4344-9A72-1F3D6DB8EDA0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E6EBBB54-9821-4344-9A72-1F3D6DB8EDA0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

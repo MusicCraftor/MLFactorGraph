@@ -20,10 +20,33 @@ namespace MLFactorGraph
             nodeIdAllocator = 0;
             edgeIdAllocator = 0;
             groupIdAllocator = 0;
+
+            // Data Source Initialization
+            this.DataSource = null;
+
+            // Lambda Initialization
+            Lambda = new Dictionary<int, double>();
         }
 
-        // Only for test!!!!
-        public int test;
+        public Dataset DataSource { get; private set; }
+
+        public void SetDataSource(Dataset dataset)
+        {
+            this.DataSource = dataset;
+
+            foreach (Factorable f in NodeLayer)
+            {
+                f.DataSource = this.DataSource;
+            }
+            foreach (Factorable f in EdgeLayer)
+            {
+                f.DataSource = this.DataSource;
+            }
+            foreach (Factorable f in GroupLayer)
+            {
+                f.DataSource = this.DataSource;
+            }
+        }
 
         public List<Node> NodeLayer { get; set; }
         public List<Edge> EdgeLayer { get; set; }
@@ -35,7 +58,6 @@ namespace MLFactorGraph
             NodeLayer.Add(v);
             return v;
         }
-
         public Edge AddEdge(uint fromId, uint toId, short label)
         {
             Node from = FindNode(fromId);
@@ -49,7 +71,6 @@ namespace MLFactorGraph
             EdgeLayer.Add(e);
             return e;
         }
-
         public Group AddGroup(short label, List<uint> nodeIds)
         {
             List<Node> nodeList = nodeIds.Select<uint, Node>(delegate (uint id)
@@ -57,7 +78,8 @@ namespace MLFactorGraph
                 Node v = FindNode(id);
                 if (v == null)
                     return null;
-                v.Group.DeleteMember(v);
+                if (v.Group != null)
+                    v.Group.RemoveMember(v);
                 return v;
             }).ToList();
             if (nodeList.Exists(v => v == null))
@@ -69,37 +91,69 @@ namespace MLFactorGraph
             GroupLayer.Add(g);
             return g;
         }
-
+        public void RemoveNode(Node v)
+        {
+            if (v.Graph == this)
+            {
+                NodeLayer[(int)v.Id] = null;
+                v.SetInvalid();
+            }
+        }
+        public void RemoveEdge(Edge e)
+        {
+            if (e.Graph == this)
+            {
+                EdgeLayer[(int)e.Id] = null;
+                e.SetInvalid();
+            }
+        }
+        public void RemoveGroup(Group g)
+        {
+            if (g.Graph == this)
+            {
+                GroupLayer[(int)g.Id] = null;
+                g.SetInvalid();
+            }
+        }
         public Node FindNode(uint id)
         {
-            return NodeLayer.Find(delegate (Node v)
+            try
             {
-                return v.Id == id;
-            });
+                return NodeLayer[(int)id];
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+            }
+            return null;
         }
-
         public Edge FindEdge(uint id)
         {
-            return EdgeLayer.Find(delegate (Edge e)
+            try
             {
-                return e.Id == id;
-            });
+                return EdgeLayer[(int)id];
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+            }
+            return null;
         }
-
         public Group FindGroup(uint id)
         {
-            return GroupLayer.Find(delegate (Group g)
+            try
             {
-                return g.Id == id;
-            });
+                return GroupLayer[(int)id];
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+            }
+            return null;
         }
 
         public void MoveMember(List<Node> nodes, Group from, Group to)
         {
-            from.DeleteMember(nodes);
+            from.RemoveMember(nodes);
             to.AddMember(nodes);
         }
-
         public void MoveMember(List<uint> nodeIds, Group from, Group to)
         {
             List<Node> nodes = NodeLayer.FindAll(delegate (Node v)
@@ -109,10 +163,59 @@ namespace MLFactorGraph
             MoveMember(nodes, from, to);
         }
 
-        public Dictionary<int, double> Lambda { get; set; }
+        public Dictionary<int, double> Lambda { get; protected set; }
+
+        public enum Layer
+        {
+            AllLayer = 0,
+            NodeLayer,
+            EdgeLayer,
+            GroupLayer
+        }
+
+        public void AddFactor(int factorId, Factorable.Factor factorFunction, Layer layer)
+        {
+            switch (layer)
+            {
+                case Layer.NodeLayer:
+                    AddFactorToLayer(factorId, factorFunction, this.NodeLayer);
+                    break;
+                case Layer.EdgeLayer:
+                    AddFactorToLayer(factorId, factorFunction, this.EdgeLayer);
+                    break;
+                case Layer.GroupLayer:
+                    AddFactorToLayer(factorId, factorFunction, this.GroupLayer);
+                    break;
+                case Layer.AllLayer:
+                    AddFactorToLayer(factorId, factorFunction, this.NodeLayer);
+                    AddFactorToLayer(factorId, factorFunction, this.EdgeLayer);
+                    AddFactorToLayer(factorId, factorFunction, this.GroupLayer);
+                    break;
+                default:
+                    break;
+            }
+            if (!Lambda.ContainsKey(factorId))
+            {
+                Lambda.Add(factorId, 1.0);
+            }
+        }
+        void AddFactorToLayer<T>(int factorId, Factorable.Factor factorFunction, List<T> layer)
+            where T : Factorable
+        {
+            layer.ForEach(delegate (T f)
+            {
+                f.AddDynamicFactor(factorId, factorFunction);
+            });
+
+        }
 
         public double FactorFunction()
         {
+            if (!DataSource.Available)
+            {
+                return Double.NaN;
+            }
+
             double result = 0.0;
             foreach (Node v in NodeLayer)
             {
@@ -138,12 +241,10 @@ namespace MLFactorGraph
         {
             return nodeIdAllocator++;
         }
-
         internal uint AllocateEdgeId()
         {
             return edgeIdAllocator++;
         }
-
         internal uint AllocateGroupId()
         {
             return groupIdAllocator++;
