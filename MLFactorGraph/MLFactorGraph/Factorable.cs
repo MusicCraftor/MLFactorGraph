@@ -15,6 +15,7 @@ namespace MLFactorGraph
             this.GetAdjacent = AdjacentMethod;
             this.FactorDictionary = new Dictionary<int, object>();
             this.FactorEnabled = new Dictionary<int, bool>();
+            this.FactorTypes = new Dictionary<int, FactorType>();
             this.FactorStorage = new List<double>();
         }
 
@@ -79,12 +80,13 @@ namespace MLFactorGraph
         Dictionary<int, bool> FactorEnabled;
         List<double> FactorStorage;
         MLFGraph Graph;
+
+        public enum FactorType
+        {
+            Value = 0, // Preserved
+            Unitary,
+            Binary
+        }
     }
 
-    public enum FactorType
-    {
-        Value = 0,
-        Unitary,
-        Binary
-    }
 }
