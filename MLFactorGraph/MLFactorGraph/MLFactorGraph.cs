@@ -234,7 +234,42 @@ namespace MLFactorGraph
 
         public Dictionary<int, double> Lambda { get; protected set; }
 
-        public void AddFactor(int factorId, Factorable.Factor factorFunction, Layer layer)
+        public void AddUnitaryFactor(int factorId, Factorable.UnitaryFactor factorFunction, Layer layer)
+        {
+            switch (layer)
+            {
+                case Layer.NodeLayer:
+                    AddUnitaryFactorToLayer(factorId, factorFunction, this.NodeLayer);
+                    break;
+                case Layer.EdgeLayer:
+                    AddUnitaryFactorToLayer(factorId, factorFunction, this.EdgeLayer);
+                    break;
+                case Layer.GroupLayer:
+                    AddUnitaryFactorToLayer(factorId, factorFunction, this.GroupLayer);
+                    break;
+                case Layer.AllLayer:
+                    AddUnitaryFactorToLayer(factorId, factorFunction, this.NodeLayer);
+                    AddUnitaryFactorToLayer(factorId, factorFunction, this.EdgeLayer);
+                    AddUnitaryFactorToLayer(factorId, factorFunction, this.GroupLayer);
+                    break;
+                default:
+                    break;
+            }
+            if (!Lambda.ContainsKey(factorId))
+            {
+                Lambda.Add(factorId, 1.0);
+            }
+        }
+        void AddUnitaryFactorToLayer<T>(int factorId, Factorable.UnitaryFactor factorFunction, List<T> layer)
+            where T : Factorable
+        {
+            layer.ForEach(delegate (T f)
+            {
+                f.AddUnitaryFactor(factorId, factorFunction);
+            });
+
+        }
+        public void AddBinaryFactor(int factorId, Factorable.BinaryFactor factorFunction, Layer layer)
         {
             switch (layer)
             {
@@ -260,38 +295,14 @@ namespace MLFactorGraph
                 Lambda.Add(factorId, 1.0);
             }
         }
-        void AddFactorToLayer<T>(int factorId, Factorable.Factor factorFunction, List<T> layer)
+        void AddFactorToLayer<T>(int factorId, Factorable.BinaryFactor factorFunction, List<T> layer)
             where T : Factorable
         {
             layer.ForEach(delegate (T f)
             {
-                f.AddDynamicFactor(factorId, factorFunction);
+                f.AddBinaryFactor(factorId, factorFunction);
             });
 
-        }
-
-        public double FactorFunction()
-        {
-            if (!DataSource.Available)
-            {
-                return Double.NaN;
-            }
-
-            double result = 0.0;
-            foreach (Node v in NodeLayer)
-            {
-                result += v.FactorFunction();
-            }
-            foreach (Edge e in EdgeLayer)
-            {
-                result += e.FactorFunction();
-            }
-            foreach (Group g in GroupLayer)
-            {
-                result += g.FactorFunction();
-            }
-
-            return result;
         }
 
         uint nodeIdAllocator;

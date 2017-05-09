@@ -19,7 +19,24 @@ namespace MLFactorGraph
 
         public Dictionary<int, object> Attribute { get; set; }
 
-        public Node(MLFGraph graph, Group group = null) : base(graph, graph.DataSource)
+        public Node(MLFGraph graph, Group group = null) 
+            : base(graph, graph.DataSource,
+                  delegate (Factorable f)
+                  {
+                      Node v = f as Node;
+                      List<Node> nodes = new List<Node>();
+                      foreach (Edge e in v.InEdge)
+                      {
+                          nodes.Add(e.From);
+                      }
+                      foreach (Edge e in v.OutEdge)
+                      {
+                          nodes.Add(e.To);
+                      }
+                      nodes = nodes.Distinct().ToList();
+                      nodes.Remove(v);
+                      return nodes.Cast<Factorable>().ToList();
+                  })
         {
             this.Id = graph.AllocateNodeId();
 

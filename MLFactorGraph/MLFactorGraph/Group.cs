@@ -18,7 +18,27 @@ namespace MLFactorGraph
 
         public MLFGraph Graph { get; protected set; }
 
-        public Group(MLFGraph graph, short label, List<Node> memberList = null) : base(graph, graph.DataSource)
+        public Group(MLFGraph graph, short label, List<Node> memberList = null)
+            : base(graph, graph.DataSource, 
+                  delegate (Factorable f)
+                  {
+                      Group g = f as Group;
+                      List<Group> groups = new List<Group>();
+                      foreach (Edge e in g.MemberEdge)
+                      {
+                          if (!g.InGroup(e.From))
+                          {
+                              groups.Add(e.From.Group);
+                          }
+                          if (!g.InGroup(e.To))
+                          {
+                              groups.Add(e.To.Group);
+                          }
+                      }
+                      groups = groups.Distinct().ToList();
+                      groups.RemoveAll(null);
+                      return groups.Cast<Factorable>().ToList();
+                  })
         {
             this.Id = graph.AllocateGroupId();
             this.Label = label;

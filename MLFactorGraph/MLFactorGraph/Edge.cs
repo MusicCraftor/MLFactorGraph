@@ -38,7 +38,22 @@ namespace MLFactorGraph
 
         public Edge DualEdge { get; internal set; }
 
-        public Edge(MLFGraph graph, short label, Node from, Node to, Group group = null, Edge dualEdge = null) : base(graph, graph.DataSource)
+        public Edge(MLFGraph graph, short label, Node from, Node to, Group group = null, Edge dualEdge = null)
+            : base(graph, graph.DataSource,
+                  delegate (Factorable f)
+                  {
+                      Edge e = f as Edge;
+                      if (graph.BidirectionEdge)
+                      {
+                          return e.From.InEdge.Concat(e.To.OutEdge).Cast<Factorable>().ToList();
+                      }
+                      else
+                      {
+                          List<Edge> edges = e.From.InEdge.Concat(e.From.OutEdge).Concat(e.To.InEdge).Concat(e.To.OutEdge).ToList();
+                          edges.RemoveAll(x => x == e);
+                          return edges.Cast<Factorable>().ToList();
+                      }
+                  })
         {
             this.Id = graph.AllocateEdgeId();
             this.Label = label;

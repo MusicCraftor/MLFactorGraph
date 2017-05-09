@@ -8,32 +8,31 @@ namespace MLFactorGraph
 {
     public class Factorable
     {
-        public Factorable(MLFGraph graph, Dataset dataSource)
+        public Factorable(MLFGraph graph, Dataset dataSource, AdjacentFactorable AdjacentMethod)
         {
             this.Graph = graph;
             this.DataSource = dataSource;
-            this.FactorDictionary = new Dictionary<int, Factor>();
+            this.GetAdjacent = AdjacentMethod;
+            this.FactorDictionary = new Dictionary<int, object>();
             this.FactorEnabled = new Dictionary<int, bool>();
             this.FactorStorage = new List<double>();
         }
 
-        public delegate double Factor(Factorable obj, Dataset data);
+        public delegate double UnitaryFactor(Factorable obj, Dataset data);
+        public delegate double BinaryFactor(Factorable obj, Factorable objAdj, Dataset data);
 
-        public void AddStaticFactor(int factorLabel, double factorValue, bool enabled = false)
-        {
-            FactorStorage.Add(Double.NaN);
-            int storageIndex = FactorStorage.FindIndex(x => x == Double.NaN);
-            FactorStorage[storageIndex] = factorValue;
+        public delegate List<Factorable> AdjacentFactorable(Factorable obj);
 
-            FactorDictionary[factorLabel] = delegate (Factorable obj, Dataset data)
-            {
-                return this.FactorStorage[storageIndex];
-            };
-            FactorEnabled[factorLabel] = enabled;
-        }
-        public void AddDynamicFactor(int factorLabel, Factor factorDelegate, bool enabled = false)
+        public void AddUnitaryFactor(int factorLabel, UnitaryFactor factorDelegate, bool enabled = true)
         {
             FactorDictionary[factorLabel] = factorDelegate;
+            FactorTypes[factorLabel] = FactorType.Unitary;
+            FactorEnabled[factorLabel] = enabled;
+        }
+        public void AddBinaryFactor(int factorLabel, BinaryFactor factorDelegate, bool enabled = true)
+        {
+            FactorDictionary[factorLabel] = factorDelegate;
+            FactorTypes[factorLabel] = FactorType.Binary;
             FactorEnabled[factorLabel] = enabled;
         }
 
@@ -56,23 +55,36 @@ namespace MLFactorGraph
                 return Double.NaN;
             }
 
-            return FactorDictionary[factorLabel](this, DataSource);
-        }
-        public double FactorFunction()
-        {
-            double result = 0.0;
-            foreach (KeyValuePair<int, Factor> factor in FactorDictionary)
+            switch(FactorTypes[factorLabel])
             {
-                result += Graph.Lambda[factor.Key] * factor.Value(this, DataSource);
+                case FactorType.Value:
+                    return Double.NaN;
+                case FactorType.Unitary:
+                    return ((UnitaryFactor)FactorDictionary[factorLabel])(this, DataSource);
+                case FactorType.Binary:
+                    return Enumerable.Sum(GetAdjacent(this).Select(delegate (Factorable f)
+                    {
+                        return ((BinaryFactor)FactorDictionary[factorLabel])(this, f, DataSource);
+                    }));
+                default:
+                    return Double.NaN;
             }
-            return result;
         }
 
         public Dataset DataSource { get; internal set; }
 
-        Dictionary<int, Factor> FactorDictionary;
+        AdjacentFactorable GetAdjacent;
+        Dictionary<int, object> FactorDictionary;
+        Dictionary<int, FactorType> FactorTypes;
         Dictionary<int, bool> FactorEnabled;
         List<double> FactorStorage;
         MLFGraph Graph;
+    }
+
+    public enum FactorType
+    {
+        Value = 0,
+        Unitary,
+        Binary
     }
 }

@@ -111,7 +111,7 @@ namespace MobileMLFactorGraph
         }
         void AssignFactor()
         {
-            base.AddFactor(MobileFactor.EDGE_CALLMSGFREQUENCY, MobileFactorFunction.Edge_CallMsgFrequency, Layer.EdgeLayer);
+            base.AddUnitaryFactor(MobileFactor.EDGE_CALLMSGFREQUENCY, MobileFactorFunction.Edge_CallMsgFrequency, Layer.EdgeLayer);
         }
 
         MobileDataset dataset;
