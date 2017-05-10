@@ -176,15 +176,15 @@ namespace MLFactorGraph
             }
             return null;
         }
-        private bool HasNode(uint id)
+        public bool HasNode(uint id)
         {
             return NodeLayer.Exists(x => x.Id == id);
         }
-        private bool HasEdge(uint fromId, uint toId)
+        public bool HasEdge(uint fromId, uint toId)
         {
             return EdgeLayer.Exists(x => x.From.Id == fromId && x.To.Id == toId);
         }
-        private bool HasGroup(List<uint> idList)
+        public bool HasGroup(List<uint> idList)
         {
             return GroupLayer.Exists(delegate (Group g)
             {
@@ -230,7 +230,7 @@ namespace MLFactorGraph
             MoveMember(nodes, from, to);
         }
 
-        public List<int> Labels { get; protected set; }
+        public List<short> Labels { get; protected set; }
 
         public Dictionary<int, double> Lambda { get; protected set; }
 

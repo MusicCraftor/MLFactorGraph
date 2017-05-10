@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace MLFactorGraph
 {
-    public class Group: Factorable
+    public class Group: Factorable, ILayerNode
     {
         public uint Id { get; protected set; }
-        public short Label { get; protected set; }
+        public short Label { get; set; }
 
         public List<Node> Member { get; protected set; }
         public List<Edge> MemberEdge { get; protected set; }

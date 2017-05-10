@@ -12,7 +12,7 @@ namespace MLFactorGraph
         {
             this.Graph = graph;
             this.DataSource = dataSource;
-            this.GetAdjacent = AdjacentMethod;
+            this.AdjacentMethod = AdjacentMethod;
             this.FactorDictionary = new Dictionary<int, object>();
             this.FactorEnabled = new Dictionary<int, bool>();
             this.FactorTypes = new Dictionary<int, FactorType>();
@@ -23,6 +23,10 @@ namespace MLFactorGraph
         public delegate double BinaryFactor(Factorable obj, Factorable objAdj, Dataset data);
 
         public delegate List<Factorable> AdjacentFactorable(Factorable obj);
+        public List<Factorable> GetAdjacent()
+        {
+            return AdjacentMethod(this);
+        }
 
         public void AddUnitaryFactor(int factorLabel, UnitaryFactor factorDelegate, bool enabled = true)
         {
@@ -37,6 +41,20 @@ namespace MLFactorGraph
             FactorEnabled[factorLabel] = enabled;
         }
 
+        public void EnableFactor(int factorLabel)
+        {
+            if (FactorDictionary.ContainsKey(factorLabel))
+            {
+                FactorEnabled[factorLabel] = true;
+            }
+        }
+        public void DisableFactor(int factorLabel)
+        {
+            if (FactorDictionary.ContainsKey(factorLabel))
+            {
+                FactorEnabled[factorLabel] = false;
+            }
+        }
         public void RemoveFactor(int factorLabel)
         {
             if (FactorDictionary.ContainsKey(factorLabel))
@@ -49,32 +67,74 @@ namespace MLFactorGraph
             FactorDictionary.Clear();
         }
 
-        public double GetFactor(int factorLabel)
+        double GetUnitaryFactor(int factorLabel)
         {
             if (!FactorDictionary.ContainsKey(factorLabel))
             {
                 return Double.NaN;
             }
-
-            switch(FactorTypes[factorLabel])
+            if (!FactorEnabled[factorLabel])
             {
-                case FactorType.Value:
-                    return Double.NaN;
+                return Double.NaN;
+            }
+
+            switch (FactorTypes[factorLabel])
+            {
                 case FactorType.Unitary:
                     return ((UnitaryFactor)FactorDictionary[factorLabel])(this, DataSource);
-                case FactorType.Binary:
-                    return Enumerable.Sum(GetAdjacent(this).Select(delegate (Factorable f)
-                    {
-                        return ((BinaryFactor)FactorDictionary[factorLabel])(this, f, DataSource);
-                    }));
                 default:
                     return Double.NaN;
             }
         }
+        double GetBinaryFactor(int factorLabel, Factorable adjFactorable)
+        {
+            if (!FactorDictionary.ContainsKey(factorLabel))
+            {
+                return Double.NaN;
+            }
+            if (!FactorEnabled[factorLabel])
+            {
+                return Double.NaN;
+            }
+
+            switch (FactorTypes[factorLabel])
+            {
+                case FactorType.Binary:
+                    return ((BinaryFactor)FactorDictionary[factorLabel])(this, adjFactorable, DataSource);
+                default:
+                    return Double.NaN;
+            }
+        }
+        public double UnitaryFactorFunction()
+        {
+            double sum = 0.0;
+            foreach (KeyValuePair<int, object> pair in FactorDictionary)
+            {
+                double factorValue = GetUnitaryFactor(pair.Key);
+                if (factorValue != double.NaN)
+                {
+                    sum += Graph.Lambda[pair.Key] * factorValue;
+                }
+            }
+            return Math.Exp(sum);
+        }
+        public double BinaryFactorFunction(Factorable adjFactorable)
+        {
+            double sum = 0.0;
+            foreach (KeyValuePair<int, object> pair in FactorDictionary)
+            {
+                double factorValue = GetBinaryFactor(pair.Key, adjFactorable);
+                if (factorValue != double.NaN)
+                {
+                    sum += Graph.Lambda[pair.Key] * factorValue;
+                }
+            }
+            return Math.Exp(sum);
+        }
 
         public Dataset DataSource { get; internal set; }
 
-        AdjacentFactorable GetAdjacent;
+        AdjacentFactorable AdjacentMethod;
         Dictionary<int, object> FactorDictionary;
         Dictionary<int, FactorType> FactorTypes;
         Dictionary<int, bool> FactorEnabled;

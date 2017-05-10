@@ -42,10 +42,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BPGraph.cs" />
+    <Compile Include="BPUnit.cs" />
     <Compile Include="Dataset.cs" />
     <Compile Include="Edge.cs" />
     <Compile Include="Group.cs" />
     <Compile Include="Factorable.cs" />
+    <Compile Include="ILayerNode.cs" />
     <Compile Include="MLFactorGraph.cs" />
     <Compile Include="Node.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

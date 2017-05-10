@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MLFactorGraph
 {
-    public class Edge : Factorable
+    public class Edge : Factorable, ILayerNode
     {
         public uint Id { get; protected set; }
 

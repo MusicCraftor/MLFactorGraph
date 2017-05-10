@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 
 namespace MLFactorGraph
 {
-    public class Node : Factorable
+    public class Node : Factorable, ILayerNode
     {
         public uint Id { get; protected set; }
+
+        public short Label { get; set; }
 
         public Group Group { get; internal set; }
 
