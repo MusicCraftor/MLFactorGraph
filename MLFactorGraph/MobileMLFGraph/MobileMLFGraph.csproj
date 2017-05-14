@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{9C2765C2-F0C5-46D3-9424-100531D35A6A}</ProjectGuid>
+    <ProjectGuid>{83955008-D5E9-42AC-A7E3-E390C3448750}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>MLFactorGraph</RootNamespace>
-    <AssemblyName>MLFactorGraph</AssemblyName>
+    <RootNamespace>MobileMLFGraph</RootNamespace>
+    <AssemblyName>MobileMLFGraph</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -20,7 +20,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\MLFactorGraph.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,7 +28,6 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\MLFactorGraph.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -42,18 +40,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BPGraph.cs" />
-    <Compile Include="BPUnit.cs" />
-    <Compile Include="Dataset.cs" />
-    <Compile Include="Edge.cs" />
-    <Compile Include="Group.cs" />
-    <Compile Include="Factorable.cs" />
-    <Compile Include="ILayerNode.cs" />
-    <Compile Include="MLFactorGraph.cs" />
-    <Compile Include="Node.cs" />
+    <Compile Include="MobileConstants.cs" />
+    <Compile Include="MobileDataset.cs" />
+    <Compile Include="MobileMLFGraph.cs" />
+    <Compile Include="MobileStructure.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\MLFactorGraph\MLFactorGraph.csproj">
+      <Project>{9c2765c2-f0c5-46d3-9424-100531d35a6a}</Project>
+      <Name>MLFactorGraph</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ResearchUtils\ResearchUtils.csproj">
       <Project>{e6ebbb54-9821-4344-9a72-1f3d6db8eda0}</Project>
       <Name>ResearchUtils</Name>

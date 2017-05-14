@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("MLFGraph")]
+[assembly: AssemblyTitle("MobileMLFGraph")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("MLFGraph")]
+[assembly: AssemblyProduct("MobileMLFGraph")]
 [assembly: AssemblyCopyright("Copyright ©  2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("9c2765c2-f0c5-46d3-9424-100531d35a6a")]
+[assembly: Guid("83955008-d5e9-42ac-a7e3-e390c3448750")]
 
 // Version information for an assembly consists of the following four values:
 //

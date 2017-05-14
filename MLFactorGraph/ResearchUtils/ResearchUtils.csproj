@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{9C2765C2-F0C5-46D3-9424-100531D35A6A}</ProjectGuid>
+    <ProjectGuid>{E6EBBB54-9821-4344-9A72-1F3D6DB8EDA0}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>MLFactorGraph</RootNamespace>
-    <AssemblyName>MLFactorGraph</AssemblyName>
+    <RootNamespace>ResearchUtils</RootNamespace>
+    <AssemblyName>ResearchUtils</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -20,7 +20,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\MLFactorGraph.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,9 +28,9 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\MLFactorGraph.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="MySql.Data, Version=6.9.9.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -42,22 +41,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BPGraph.cs" />
-    <Compile Include="BPUnit.cs" />
-    <Compile Include="Dataset.cs" />
-    <Compile Include="Edge.cs" />
-    <Compile Include="Group.cs" />
-    <Compile Include="Factorable.cs" />
-    <Compile Include="ILayerNode.cs" />
-    <Compile Include="MLFactorGraph.cs" />
-    <Compile Include="Node.cs" />
+    <Compile Include="DatabaseConnection.cs" />
+    <Compile Include="HttpUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ResearchUtils\ResearchUtils.csproj">
-      <Project>{e6ebbb54-9821-4344-9a72-1f3d6db8eda0}</Project>
-      <Name>ResearchUtils</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
