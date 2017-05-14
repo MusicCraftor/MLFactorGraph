@@ -36,7 +36,7 @@ namespace MLFactorGraph
                           }
                       }
                       groups = groups.Distinct().ToList();
-                      groups.RemoveAll(null);
+                      groups.RemoveAll(x => x == null);
                       return groups.Cast<Factorable>().ToList();
                   })
         {

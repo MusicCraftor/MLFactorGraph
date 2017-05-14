@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace MLFactorGraph
 {
-    internal class BPGraph
+    // should be internal!!!
+    public class BPGraph
     {
         public BPGraph(MLFGraph baseGraph)
         {
@@ -46,33 +47,54 @@ namespace MLFactorGraph
             {
                 foreach (T neighBase in unit.BaseUnit.GetAdjacent())
                 {
-                    unit.Neighbors.Add(Base2BPMapping[neighBase] as BPUnit<T>);
+                    BPUnit<T> neigh = Base2BPMapping[neighBase] as BPUnit<T>;
+                    unit.Neighbors.Add(neigh);
+                    unit.Messages[neigh] = new Dictionary<short, double>();
                 }
             }
         }
 
+        public void BeliefPropagation(int maxIteration, MLFGraph.Layer layer)
+        {
+            switch (layer)
+            {
+                case MLFGraph.Layer.NodeLayer:
+                    LayerBeliefPropagation(maxIteration, this.BPNodeLayer);
+                    break;
+                case MLFGraph.Layer.EdgeLayer:
+                    LayerBeliefPropagation(maxIteration, this.BPEdgeLayer);
+                    break;
+                case MLFGraph.Layer.GroupLayer:
+                    LayerBeliefPropagation(maxIteration, this.BPGroupLayer);
+                    break;
+                case MLFGraph.Layer.AllLayer:
+                    LayerBeliefPropagation(maxIteration, this.BPNodeLayer);
+                    LayerBeliefPropagation(maxIteration, this.BPEdgeLayer);
+                    LayerBeliefPropagation(maxIteration, this.BPGroupLayer);
+                    break;
+                default:
+                    break;
+            }
+        }
         public void LayerBeliefPropagation<T>(int maxIteration, List<BPUnit<T>> layer)
             where T : Factorable, ILayerNode
         {
             List<int> bfsOrder = BFSOrder(layer);
             for (int iter = 0; iter < maxIteration; iter++)
             {
-                int start, end, interval;
-                if (iter % 2 == 0)
-                {
-                    start = layer.Count - 1; end = 0; interval = -1;
-                }
-                else
-                {
-                    start = 0; end = layer.Count - 1; interval = +1;
-                }
-
                 double maxDifference = 0;
-                for (int i = start; i <= end; i += interval)
+                for (int i = layer.Count - 1; i >= 0; i--)
                 {
                     double diff = layer[bfsOrder[i]].BeliefPropagation();
                     maxDifference = Math.Max(maxDifference, diff);
                 }
+
+                for (int i = 0; i <= layer.Count - 1; i++)
+                {
+                    double diff = layer[bfsOrder[i]].BeliefPropagation();
+                    maxDifference = Math.Max(maxDifference, diff);
+                }
+                Console.WriteLine(maxDifference);
 
                 if (maxDifference < 1e-6)
                 {
@@ -84,6 +106,16 @@ namespace MLFactorGraph
             where T : Factorable, ILayerNode
         {
             return Enumerable.Range(0, layer.Count).ToList();
+        }
+
+        public List<Dictionary<short, double>> GetGradient()
+        {
+            List<Dictionary<short, double>> gradientList = new List<Dictionary<short, double>>();
+            foreach (BPUnit<Edge> eUnit in BPEdgeLayer)
+            {
+                gradientList.Add(eUnit.GetBelief());
+            }
+            return gradientList;
         }
 
         List<BPUnit<Node>> BPNodeLayer;

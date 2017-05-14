@@ -9,7 +9,7 @@ namespace MLFactorGraph
 {
     public class MLFGraph
     {
-        public MLFGraph(bool bidirectionEdge)
+        public MLFGraph(List<short> labels, bool bidirectionEdge)
         {
             // Layer initialization
             NodeLayer = new List<Node>();
@@ -25,9 +25,10 @@ namespace MLFactorGraph
             this.DataSource = null;
 
             this.BidirectionEdge = bidirectionEdge;
+            this.Labels = labels;
 
             // Lambda Initialization
-            Lambda = new Dictionary<int, double>();
+            Lambda = new Dictionary<int, Dictionary<byte, double>>();
         }
 
         public Dataset DataSource { get; private set; }
@@ -232,83 +233,171 @@ namespace MLFactorGraph
 
         public List<short> Labels { get; protected set; }
 
-        public Dictionary<int, double> Lambda { get; protected set; }
+        public void InitializeLambda(int factorLabel, byte value)
+        {
+            if (!Lambda.ContainsKey(factorLabel))
+            {
+                Lambda[factorLabel] = new Dictionary<byte, double>();
+            }
+            Lambda[factorLabel][value] = LAMBDA_INITIALIZATION;
+        }
+        public void SetLambda(int factorLabel, byte value, double lambda)
+        {
+            InitializeLambda(factorLabel, value);
+            Lambda[factorLabel][value] = lambda;
+        }
+        public double GetLambda(int factorLabel, byte value)
+        {
+            if ((!Lambda.ContainsKey(factorLabel)) || (!Lambda[factorLabel].ContainsKey(value)))
+            {
+                InitializeLambda(factorLabel, value);
+            }
+            return Lambda[factorLabel][value];
+        }
+        public Dictionary<int, Dictionary<byte, double>> Lambda { get; protected set; }
 
-        public void AddUnitaryFactor(int factorId, Factorable.UnitaryFactor factorFunction, Layer layer)
+        public void AddUnitaryFactor(int factorId, Factorable.UnitaryFactor factorFunction, Layer layer, bool dynamic = true, bool enabled = true)
         {
             switch (layer)
             {
                 case Layer.NodeLayer:
-                    AddUnitaryFactorToLayer(factorId, factorFunction, this.NodeLayer);
+                    AddUnitaryFactorToLayer(factorId, factorFunction, this.NodeLayer, dynamic, enabled);
                     break;
                 case Layer.EdgeLayer:
-                    AddUnitaryFactorToLayer(factorId, factorFunction, this.EdgeLayer);
+                    AddUnitaryFactorToLayer(factorId, factorFunction, this.EdgeLayer, dynamic, enabled);
                     break;
                 case Layer.GroupLayer:
-                    AddUnitaryFactorToLayer(factorId, factorFunction, this.GroupLayer);
+                    AddUnitaryFactorToLayer(factorId, factorFunction, this.GroupLayer, dynamic, enabled);
                     break;
                 case Layer.AllLayer:
-                    AddUnitaryFactorToLayer(factorId, factorFunction, this.NodeLayer);
-                    AddUnitaryFactorToLayer(factorId, factorFunction, this.EdgeLayer);
-                    AddUnitaryFactorToLayer(factorId, factorFunction, this.GroupLayer);
+                    AddUnitaryFactorToLayer(factorId, factorFunction, this.NodeLayer, dynamic, enabled);
+                    AddUnitaryFactorToLayer(factorId, factorFunction, this.EdgeLayer, dynamic, enabled);
+                    AddUnitaryFactorToLayer(factorId, factorFunction, this.GroupLayer, dynamic, enabled);
                     break;
                 default:
                     break;
             }
             if (!Lambda.ContainsKey(factorId))
             {
-                Lambda.Add(factorId, 1.0);
+                Lambda.Add(factorId, new Dictionary<byte, double>());
             }
         }
-        void AddUnitaryFactorToLayer<T>(int factorId, Factorable.UnitaryFactor factorFunction, List<T> layer)
-            where T : Factorable
+        void AddUnitaryFactorToLayer<T>(int factorId, Factorable.UnitaryFactor factorFunction, List<T> layer, bool dynamic = true, bool enabled = true)
+            where T : Factorable, ILayerNode
         {
             layer.ForEach(delegate (T f)
             {
-                f.AddUnitaryFactor(factorId, factorFunction);
+                f.AddUnitaryFactor(factorId, factorFunction, dynamic, enabled);
             });
 
         }
-        public void AddBinaryFactor(int factorId, Factorable.BinaryFactor factorFunction, Layer layer)
+        public void AddBinaryFactor(int factorId, Factorable.BinaryFactor factorFunction, Layer layer, bool enabled = true)
         {
             switch (layer)
             {
                 case Layer.NodeLayer:
-                    AddFactorToLayer(factorId, factorFunction, this.NodeLayer);
+                    AddBinaryFactorToLayer(factorId, factorFunction, this.NodeLayer, enabled);
                     break;
                 case Layer.EdgeLayer:
-                    AddFactorToLayer(factorId, factorFunction, this.EdgeLayer);
+                    AddBinaryFactorToLayer(factorId, factorFunction, this.EdgeLayer, enabled);
                     break;
                 case Layer.GroupLayer:
-                    AddFactorToLayer(factorId, factorFunction, this.GroupLayer);
+                    AddBinaryFactorToLayer(factorId, factorFunction, this.GroupLayer, enabled);
                     break;
                 case Layer.AllLayer:
-                    AddFactorToLayer(factorId, factorFunction, this.NodeLayer);
-                    AddFactorToLayer(factorId, factorFunction, this.EdgeLayer);
-                    AddFactorToLayer(factorId, factorFunction, this.GroupLayer);
+                    AddBinaryFactorToLayer(factorId, factorFunction, this.NodeLayer, enabled);
+                    AddBinaryFactorToLayer(factorId, factorFunction, this.EdgeLayer, enabled);
+                    AddBinaryFactorToLayer(factorId, factorFunction, this.GroupLayer, enabled);
                     break;
                 default:
                     break;
             }
             if (!Lambda.ContainsKey(factorId))
             {
-                Lambda.Add(factorId, 1.0);
+                Lambda.Add(factorId, new Dictionary<byte, double>());
             }
         }
-        void AddFactorToLayer<T>(int factorId, Factorable.BinaryFactor factorFunction, List<T> layer)
-            where T : Factorable
+        void AddBinaryFactorToLayer<T>(int factorId, Factorable.BinaryFactor factorFunction, List<T> layer, bool enabled = true)
+            where T : Factorable, ILayerNode
         {
             layer.ForEach(delegate (T f)
             {
-                f.AddBinaryFactor(factorId, factorFunction);
+                f.AddBinaryFactor(factorId, factorFunction, enabled);
             });
 
+        }
+
+        public void FactorInitialization(Layer layer)
+        {
+            switch (layer)
+            {
+                case Layer.NodeLayer:
+                    FactorInitializationToLayer(this.NodeLayer);
+                    break;
+                case Layer.EdgeLayer:
+                    FactorInitializationToLayer(this.EdgeLayer);
+                    break;
+                case Layer.GroupLayer:
+                    FactorInitializationToLayer(this.GroupLayer);
+                    break;
+                case Layer.AllLayer:
+                    FactorInitializationToLayer(this.NodeLayer);
+                    FactorInitializationToLayer(this.EdgeLayer);
+                    FactorInitializationToLayer(this.GroupLayer);
+                    break;
+                default:
+                    break;
+            }
+        }
+        void FactorInitializationToLayer<T>(List<T> layer)
+            where T : Factorable, ILayerNode
+        {
+            foreach (T t1 in layer)
+            {
+                t1.UnitaryFactorFunction();
+            }
+        }
+
+        public BPGraph BeliefPropagation(int maxIteration, Layer layer)
+        {
+            BPGraph bpGraph = new BPGraph(this);
+            bpGraph.BeliefPropagation(maxIteration, layer);
+            return bpGraph;
+        }
+
+        public void OutputLambda()
+        {
+            foreach (KeyValuePair<int, Dictionary<byte, double>> lambdaRecord in this.Lambda)
+            {
+                Console.Write(lambdaRecord.Key);
+                foreach (KeyValuePair<byte, double> lambda in lambdaRecord.Value)
+                {
+                    Console.Write(" ({0}, {1})", lambda.Key, lambda.Value);
+                }
+                Console.WriteLine();
+            }
+        }
+        public void OutputEdgeFactor()
+        {
+            foreach (Edge e in this.EdgeLayer)
+            {
+                Console.Write(e.Id);
+                foreach (KeyValuePair<int, Dictionary<byte, double>> lambdaRecord in this.Lambda)
+                {
+                    foreach (KeyValuePair<byte, double> lambda in lambdaRecord.Value)
+                    {
+                        Console.Write(" {0}", e.CheckUnitaryFactor(lambdaRecord.Key, lambda.Key));
+                    }
+                }
+                Console.Write(" {0}", e.Label);
+                Console.WriteLine();
+            }
         }
 
         uint nodeIdAllocator;
         uint edgeIdAllocator;
         uint groupIdAllocator;
-
+        
         internal uint AllocateNodeId()
         {
             return nodeIdAllocator++;
@@ -321,5 +410,7 @@ namespace MLFactorGraph
         {
             return groupIdAllocator++;
         }
+
+        private const double LAMBDA_INITIALIZATION = 0.0;
     }
 }

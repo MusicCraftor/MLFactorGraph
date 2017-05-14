@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace MLFactorGraph
 {
-    class BPUnit<T>
+    // should be internal!!!
+    public class BPUnit<T>
         where T : Factorable, ILayerNode
     {
         public BPUnit(BPGraph bpGraph, T baseUnit)
@@ -14,10 +15,14 @@ namespace MLFactorGraph
             this.BaseUnit = baseUnit;
             this.BpGraph = bpGraph;
             this.Neighbors = new List<BPUnit<T>>();
+
+            this.Messages = new Dictionary<BPUnit<T>, Dictionary<short, double>>();
+            this.Belief = null;
         }
 
         public double BeliefPropagation()
         {
+            Belief = null;
             double maxDiff = 0.0;
 
             foreach (BPUnit<T> neighbor in Neighbors)
@@ -39,7 +44,14 @@ namespace MLFactorGraph
                     {
                         if (otherNgh != neighbor)
                         {
-                            product *= Messages[otherNgh][nghLabel];
+                            try
+                            {
+                                product *= Messages[otherNgh][nghLabel];
+                            }
+                            catch (KeyNotFoundException)
+                            {
+                                // Ignore this message
+                            }
                         }
                     }
 
@@ -70,15 +82,54 @@ namespace MLFactorGraph
             }
 
             unit.Messages[this] = message;
+            if (lastMsg.Count != message.Count)
+            {
+                return 1.0;
+            }
             return Enumerable.Zip(lastMsg, message, (first, second) => Math.Abs(first.Value - second.Value))
                 .Max();
+        }
+
+        public Dictionary<short, double> GetBelief()
+        {
+            if (Belief == null)
+            {
+                Belief = new Dictionary<short, double>();
+                foreach (short label in BaseUnit.Graph.Labels)
+                {
+                    this.BaseUnit.Label = label;
+                    double product = this.BaseUnit.UnitaryFactorFunction();
+                    foreach (BPUnit<T> neighbor in Neighbors)
+                    {
+                        foreach (short nghLabel in BaseUnit.Graph.Labels)
+                        {
+                            try
+                            {
+                                product *= Messages[neighbor][nghLabel];
+                            }
+                            catch (KeyNotFoundException)
+                            {
+                                // Ignore this message
+                            }
+                        }
+                    }
+                    Belief[label] = product;
+                }
+                NormalizeBelief();
+            }
+            return Belief;
+        }
+        void NormalizeBelief()
+        {
+            double beliefSum = Belief.Sum(x => x.Value);
+            Belief = Belief.ToDictionary(x => x.Key, x => x.Value / beliefSum);
         }
 
         public T BaseUnit { get; protected set; }
         public BPGraph BpGraph { get; protected set; }
         public List<BPUnit<T>> Neighbors { get; internal set; }
-
-        public Dictionary<int, double> Belief { get; protected set; }
+        
         internal Dictionary<BPUnit<T>, Dictionary<short, double>> Messages { get; set; }
+        Dictionary<short, double> Belief;
     }
 }

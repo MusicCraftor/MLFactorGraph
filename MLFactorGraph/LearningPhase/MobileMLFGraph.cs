@@ -13,18 +13,79 @@ namespace MobileMLFactorGraph
     public class MobileMLFGraph : MLFGraph
     {
         public MobileMLFGraph(DatabaseConnection database, bool bidirectionEdge = false)
-            : base(bidirectionEdge)
+            : base(MobileLabel.ToList(), bidirectionEdge)
         {
             dataset = new MobileDataset(database);
             base.SetDataSource(dataset);
 
             BuildGraph();
             AssignFactor();
+            FactorInitialization(Layer.AllLayer);
+
+            List<FamilyInfo> familyInfo = dataset.InquiryDataWithMethod(new ArrayList(), MobileDataset.FetchAllFamilyInfo);
+            List<ColleagueInfo> colleagueInfo = dataset.InquiryDataWithMethod(new ArrayList(), MobileDataset.FetchAllColleagueInfo);
+            List<FriendInfo> friendInfo = dataset.InquiryDataWithMethod(new ArrayList(), MobileDataset.FetchAllFriendInfo);
+
+            /*int correct = 0, error = 0;
+            foreach (Edge e in this.EdgeLayer)
+            {
+                switch (e.Label)
+                {
+                    case MobileLabel.FAMILY:
+                        FamilyInfo fA, fB;
+                        fA = familyInfo.Find(x => x.MEMBER_ID == (Int64)e.From.Attribute[MobileAttribute.UserId]);
+                        fB = familyInfo.Find(x => x.MEMBER_ID == (Int64)e.To.Attribute[MobileAttribute.UserId]);
+                        try
+                        {
+                            if (fA.ID == fB.ID)
+                            {
+                                correct++;
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            error++;
+                        }
+                        break;
+                    case MobileLabel.COLLEAGUE:
+                        ColleagueInfo cA, cB;
+                        cA = colleagueInfo.Find(x => x.MEMBER_ID == (Int64)e.From.Attribute[MobileAttribute.UserId]);
+                        cB = colleagueInfo.Find(x => x.MEMBER_ID == (Int64)e.To.Attribute[MobileAttribute.UserId]);
+                        try
+                        {
+                            if (cA.ID == cB.ID)
+                            {
+                                correct++;
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            error++;
+                        }
+                        break;
+                    case MobileLabel.FRIEND:
+                        FriendInfo info;
+                        info = friendInfo.Find(x => ((x.ID_A == (Int64)e.From.Attribute[MobileAttribute.UserId]) && (x.ID_B == (Int64)e.To.Attribute[MobileAttribute.UserId])));
+                        if (info != null)
+                        {
+                            correct++;
+                        }
+                        else
+                        {
+                            error++;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            Console.WriteLine("Edge label check: {0} {1}", correct, error);*/
         }
 
         void BuildGraph()
         {
-            List<Int64> UserIds = dataset.InquiryDataWithMethod(new ArrayList(), dataset.FetchAllUserId);
+            List<Int64> UserIds = dataset.InquiryDataWithMethod(new ArrayList(), MobileDataset.FetchAllUserId);
             Dictionary<Int64, uint> nodeIdMapping = new Dictionary<Int64, uint>();
             foreach (Int64 id in UserIds)
             {
@@ -33,13 +94,17 @@ namespace MobileMLFactorGraph
                 nodeIdMapping[id] = v.Id;
             }
 
+            List<FamilyInfo> familyInfo = dataset.InquiryDataWithMethod(new ArrayList(), MobileDataset.FetchAllFamilyInfo);
+            List<ColleagueInfo> colleagueInfo = dataset.InquiryDataWithMethod(new ArrayList(), MobileDataset.FetchAllColleagueInfo);
+            List<FriendInfo> friendInfo = dataset.InquiryDataWithMethod(new ArrayList(), MobileDataset.FetchAllFriendInfo);
+
             foreach (Int64 fromId in UserIds)
             {
                 Node fromNode = base.FindNode(nodeIdMapping[fromId]);
-                List<CallInfo> callInfo_from = dataset.InquiryDataWithMethod(new ArrayList { fromId }, dataset.FetchCallInfoList_From);
-                List<CallInfo> callInfo_to = dataset.InquiryDataWithMethod(new ArrayList { fromId }, dataset.FetchCallInfoList_To);
-                List<MessageInfo> msgInfo_from = dataset.InquiryDataWithMethod(new ArrayList { fromId }, dataset.FetchMessageInfoList_From);
-                List<MessageInfo> msgInfo_to = dataset.InquiryDataWithMethod(new ArrayList { fromId }, dataset.FetchMessageInfoList_To);
+                List<CallInfo> callInfo_from = dataset.InquiryDataWithMethod(new ArrayList { fromId }, MobileDataset.FetchCallInfoList_From);
+                List<CallInfo> callInfo_to = dataset.InquiryDataWithMethod(new ArrayList { fromId }, MobileDataset.FetchCallInfoList_To);
+                List<MessageInfo> msgInfo_from = dataset.InquiryDataWithMethod(new ArrayList { fromId }, MobileDataset.FetchMessageInfoList_From);
+                List<MessageInfo> msgInfo_to = dataset.InquiryDataWithMethod(new ArrayList { fromId }, MobileDataset.FetchMessageInfoList_To);
                 
                 // Get Relation
                 List<Int64> hasRelation = new List<Int64>();
@@ -63,12 +128,13 @@ namespace MobileMLFactorGraph
 
                 foreach (Int64 toId in hasRelation)
                 {
-                    Edge e = base.AddEdge(nodeIdMapping[fromId], nodeIdMapping[toId], MobileLabel.UNKNOWN);
+                    Edge e = base.AddEdge(nodeIdMapping[fromId], nodeIdMapping[toId], MobileLabel.NORELATION);
+                    if (friendInfo.Exists(x => (Int64)e.From.Attribute[MobileAttribute.UserId] == x.ID_A && (Int64)e.To.Attribute[MobileAttribute.UserId] == x.ID_B))
+                    {
+                        e.Label = MobileLabel.FRIEND;
+                    }
                 }
             }
-
-            List<FamilyInfo> familyInfo = dataset.InquiryDataWithMethod(new ArrayList(), dataset.FetchAllFamilyInfo);
-            List<ColleagueInfo> colleagueInfo = dataset.InquiryDataWithMethod(new ArrayList(), dataset.FetchAllColleagueInfo);
 
             Dictionary<string, List<Int64>> rawFamilies = new Dictionary<string, List<Int64>>();
             Dictionary<string, List<Int64>> rawColleagues = new Dictionary<string, List<Int64>>();
@@ -111,7 +177,11 @@ namespace MobileMLFactorGraph
         }
         void AssignFactor()
         {
-            base.AddUnitaryFactor(MobileFactor.EDGE_CALLMSGFREQUENCY, MobileFactorFunction.Edge_CallMsgFrequency, Layer.EdgeLayer);
+            base.AddUnitaryFactor(MobileFactor.EDGE_CALLMSGCOUNT, MobileFactorFunctionGenerator.Edge_CallMsgCount, Layer.EdgeLayer, false);
+            foreach (var factor in MobileFactorFunctionGenerator.Gen_Edge_CallMsgFrequency_Hour())
+            {
+                base.AddUnitaryFactor(factor.Key, factor.Value, Layer.EdgeLayer, false);
+            }
         }
 
         MobileDataset dataset;

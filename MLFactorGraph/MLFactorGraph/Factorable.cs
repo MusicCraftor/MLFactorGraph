@@ -16,11 +16,10 @@ namespace MLFactorGraph
             this.FactorDictionary = new Dictionary<int, object>();
             this.FactorEnabled = new Dictionary<int, bool>();
             this.FactorTypes = new Dictionary<int, FactorType>();
-            this.FactorStorage = new List<double>();
         }
 
-        public delegate double UnitaryFactor(Factorable obj, Dataset data);
-        public delegate double BinaryFactor(Factorable obj, Factorable objAdj, Dataset data);
+        public delegate byte UnitaryFactor(Factorable obj, Dataset data);
+        public delegate byte BinaryFactor(Factorable obj, Factorable objAdj, Dataset data);
 
         public delegate List<Factorable> AdjacentFactorable(Factorable obj);
         public List<Factorable> GetAdjacent()
@@ -28,9 +27,21 @@ namespace MLFactorGraph
             return AdjacentMethod(this);
         }
 
-        public void AddUnitaryFactor(int factorLabel, UnitaryFactor factorDelegate, bool enabled = true)
+        public void AddUnitaryFactor(int factorLabel, UnitaryFactor factorDelegate, bool dynamic = true, bool enabled = true)
         {
-            FactorDictionary[factorLabel] = factorDelegate;
+            if (dynamic)
+            {
+                FactorDictionary[factorLabel] = factorDelegate;
+            }
+            else
+            {
+                byte result = factorDelegate(this, this.DataSource);
+                UnitaryFactor factor = delegate (Factorable obj, Dataset data)
+                {
+                    return result;
+                };
+                FactorDictionary[factorLabel] = factor;
+            }
             FactorTypes[factorLabel] = FactorType.Unitary;
             FactorEnabled[factorLabel] = enabled;
         }
@@ -67,15 +78,15 @@ namespace MLFactorGraph
             FactorDictionary.Clear();
         }
 
-        double GetUnitaryFactor(int factorLabel)
+        public byte GetUnitaryFactor(int factorLabel)
         {
             if (!FactorDictionary.ContainsKey(factorLabel))
             {
-                return Double.NaN;
+                return byte.MaxValue;
             }
             if (!FactorEnabled[factorLabel])
             {
-                return Double.NaN;
+                return byte.MaxValue;
             }
 
             switch (FactorTypes[factorLabel])
@@ -83,18 +94,18 @@ namespace MLFactorGraph
                 case FactorType.Unitary:
                     return ((UnitaryFactor)FactorDictionary[factorLabel])(this, DataSource);
                 default:
-                    return Double.NaN;
+                    return byte.MaxValue;
             }
         }
-        double GetBinaryFactor(int factorLabel, Factorable adjFactorable)
+        public byte GetBinaryFactor(int factorLabel, Factorable adjFactorable)
         {
             if (!FactorDictionary.ContainsKey(factorLabel))
             {
-                return Double.NaN;
+                return byte.MaxValue;
             }
             if (!FactorEnabled[factorLabel])
             {
-                return Double.NaN;
+                return byte.MaxValue;
             }
 
             switch (FactorTypes[factorLabel])
@@ -102,18 +113,30 @@ namespace MLFactorGraph
                 case FactorType.Binary:
                     return ((BinaryFactor)FactorDictionary[factorLabel])(this, adjFactorable, DataSource);
                 default:
-                    return Double.NaN;
+                    return byte.MaxValue;
             }
+        }
+        public int CheckUnitaryFactor(int factorLabel, byte value)
+        {
+            return (value == GetUnitaryFactor(factorLabel)) ?
+                1 :
+                0;
+        }
+        public int CheckBinaryFactor(int factorLabel, Factorable adjFactorable, byte value)
+        {
+            return (value == GetBinaryFactor(factorLabel, adjFactorable)) ?
+                1 :
+                0;
         }
         public double UnitaryFactorFunction()
         {
             double sum = 0.0;
             foreach (KeyValuePair<int, object> pair in FactorDictionary)
             {
-                double factorValue = GetUnitaryFactor(pair.Key);
+                byte factorValue = GetUnitaryFactor(pair.Key);
                 if (factorValue != double.NaN)
                 {
-                    sum += Graph.Lambda[pair.Key] * factorValue;
+                    sum += Graph.GetLambda(pair.Key, factorValue) * CheckUnitaryFactor(pair.Key, factorValue);
                 }
             }
             return Math.Exp(sum);
@@ -123,10 +146,10 @@ namespace MLFactorGraph
             double sum = 0.0;
             foreach (KeyValuePair<int, object> pair in FactorDictionary)
             {
-                double factorValue = GetBinaryFactor(pair.Key, adjFactorable);
+                byte factorValue = GetBinaryFactor(pair.Key, adjFactorable);
                 if (factorValue != double.NaN)
                 {
-                    sum += Graph.Lambda[pair.Key] * factorValue;
+                    sum += Graph.GetLambda(pair.Key, factorValue) * factorValue;
                 }
             }
             return Math.Exp(sum);
@@ -138,7 +161,6 @@ namespace MLFactorGraph
         Dictionary<int, object> FactorDictionary;
         Dictionary<int, FactorType> FactorTypes;
         Dictionary<int, bool> FactorEnabled;
-        List<double> FactorStorage;
         MLFGraph Graph;
 
         public enum FactorType

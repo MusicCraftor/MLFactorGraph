@@ -33,7 +33,7 @@ namespace MobileMLFactorGraph
         }
 
         #region Basic Get Methods - Registered
-        public CellInfo GetCellInfo(DatabaseConnection dataSource, ArrayList info)
+        public static CellInfo GetCellInfo(DatabaseConnection dataSource, ArrayList info)
         {
             try
             {
@@ -47,7 +47,7 @@ namespace MobileMLFactorGraph
             }
             return null;
         }
-        public CellAdjacency GetCellAdjacency(DatabaseConnection dataSource, ArrayList info)
+        public static CellAdjacency GetCellAdjacency(DatabaseConnection dataSource, ArrayList info)
         {
             try
             {
@@ -62,7 +62,7 @@ namespace MobileMLFactorGraph
             }
             return null;
         }
-        public PoiInfo GetPoiInfo(DatabaseConnection dataSource, ArrayList info)
+        public static PoiInfo GetPoiInfo(DatabaseConnection dataSource, ArrayList info)
         {
             try
             {
@@ -76,7 +76,7 @@ namespace MobileMLFactorGraph
             }
             return null;
         }
-        public FamilyInfo GetFamilyInfo(DatabaseConnection dataSource, ArrayList info)
+        public static FamilyInfo GetFamilyInfo(DatabaseConnection dataSource, ArrayList info)
         {
             try
             {
@@ -91,7 +91,7 @@ namespace MobileMLFactorGraph
             }
             return null;
         }
-        public List<FamilyInfo> GetFamilyInfoList(DatabaseConnection dataSource, ArrayList info)
+        public static List<FamilyInfo> GetFamilyInfoList(DatabaseConnection dataSource, ArrayList info)
         {
             try
             {
@@ -105,7 +105,7 @@ namespace MobileMLFactorGraph
             }
             return null;
         }
-        public ColleagueInfo GetColleagueInfo(DatabaseConnection dataSource, ArrayList info)
+        public static ColleagueInfo GetColleagueInfo(DatabaseConnection dataSource, ArrayList info)
         {
             try
             {
@@ -120,7 +120,7 @@ namespace MobileMLFactorGraph
             }
             return null;
         }
-        public List<ColleagueInfo> GetColleagueInfoList(DatabaseConnection dataSource, ArrayList info)
+        public static List<ColleagueInfo> GetColleagueInfoList(DatabaseConnection dataSource, ArrayList info)
         {
             try
             {
@@ -134,7 +134,7 @@ namespace MobileMLFactorGraph
             }
             return null;
         }
-        public FriendInfo GetFriendInfo(DatabaseConnection dataSource, ArrayList info)
+        public static FriendInfo GetFriendInfo(DatabaseConnection dataSource, ArrayList info)
         {
             try
             {
@@ -149,7 +149,7 @@ namespace MobileMLFactorGraph
             }
             return null;
         }
-        public List<FriendInfo> GetFriendInfoList(DatabaseConnection dataSource, ArrayList info)
+        public static List<FriendInfo> GetFriendInfoList(DatabaseConnection dataSource, ArrayList info)
         {
             try
             {
@@ -163,7 +163,7 @@ namespace MobileMLFactorGraph
             }
             return null;
         }
-        public List<CallInfo> GetCallInfoList(DatabaseConnection dataSource, ArrayList info)
+        public static List<CallInfo> GetCallInfoList(DatabaseConnection dataSource, ArrayList info)
         {
             try
             {
@@ -178,7 +178,7 @@ namespace MobileMLFactorGraph
             }
             return null;
         }
-        public List<MessageInfo> GetMessageInfoList(DatabaseConnection dataSource, ArrayList info)
+        public static List<MessageInfo> GetMessageInfoList(DatabaseConnection dataSource, ArrayList info)
         {
             try
             {
@@ -193,7 +193,7 @@ namespace MobileMLFactorGraph
             }
             return null;
         }
-        public UserInfo GetUserInfo(DatabaseConnection dataSource, ArrayList info)
+        public static UserInfo GetUserInfo(DatabaseConnection dataSource, ArrayList info)
         {
             try
             {
@@ -207,7 +207,7 @@ namespace MobileMLFactorGraph
             }
             return null;
         }
-        public UserEvent GetUserEvent(DatabaseConnection dataSource, ArrayList info)
+        public static UserEvent GetUserEvent(DatabaseConnection dataSource, ArrayList info)
         {
             try
             {
@@ -221,7 +221,7 @@ namespace MobileMLFactorGraph
             }
             return null;
         }
-        public UserInteraction GetUserInteraction(DatabaseConnection dataSource, ArrayList info)
+        public static UserInteraction GetUserInteraction(DatabaseConnection dataSource, ArrayList info)
         {
             try
             {
@@ -235,7 +235,7 @@ namespace MobileMLFactorGraph
             }
             return null;
         }
-        public UserOD GetUserOD(DatabaseConnection dataSource, ArrayList info)
+        public static UserOD GetUserOD(DatabaseConnection dataSource, ArrayList info)
         {
             try
             {
@@ -252,7 +252,7 @@ namespace MobileMLFactorGraph
         #endregion
 
         #region Specified Fetch Methods - Assign when use
-        public List<CallInfo> FetchCallInfoList_From(DatabaseConnection dataSource, ArrayList info)
+        public static List<CallInfo> FetchCallInfoList_From(DatabaseConnection dataSource, ArrayList info)
         {
             try
             {
@@ -266,7 +266,7 @@ namespace MobileMLFactorGraph
             }
             return null;
         }
-        public List<CallInfo> FetchCallInfoList_To(DatabaseConnection dataSource, ArrayList info)
+        public static List<CallInfo> FetchCallInfoList_To(DatabaseConnection dataSource, ArrayList info)
         {
             try
             {
@@ -280,7 +280,7 @@ namespace MobileMLFactorGraph
             }
             return null;
         }
-        public List<MessageInfo> FetchMessageInfoList_From(DatabaseConnection dataSource, ArrayList info)
+        public static List<MessageInfo> FetchMessageInfoList_From(DatabaseConnection dataSource, ArrayList info)
         {
             try
             {
@@ -294,7 +294,7 @@ namespace MobileMLFactorGraph
             }
             return null;
         }
-        public List<MessageInfo> FetchMessageInfoList_To(DatabaseConnection dataSource, ArrayList info)
+        public static List<MessageInfo> FetchMessageInfoList_To(DatabaseConnection dataSource, ArrayList info)
         {
             try
             {
@@ -308,27 +308,52 @@ namespace MobileMLFactorGraph
             }
             return null;
         }
-        public List<Int64> FetchAllUserId(DatabaseConnection dataSource, ArrayList info)
+        public static List<Int64> FetchAllUserId(DatabaseConnection dataSource, ArrayList info)
         {
             string query = "SELECT * FROM " + MobileTableName.UserInfo;
             return dataSource.PollingExecuteQuery_ObjectResult<UserInfo>(query)
                 .Select(x => x.ID)
                 .ToList();
         }
-        public List<FamilyInfo> FetchAllFamilyInfo(DatabaseConnection dataSource, ArrayList info)
+        public static List<FamilyInfo> FetchAllFamilyInfo(DatabaseConnection dataSource, ArrayList info)
         {
             string query = "SELECT * FROM " + MobileTableName.FamilyInfo;
             return dataSource.PollingExecuteQuery_ObjectResult<FamilyInfo>(query);
         }
-        public List<ColleagueInfo> FetchAllColleagueInfo(DatabaseConnection dataSource, ArrayList info)
+        public static List<ColleagueInfo> FetchAllColleagueInfo(DatabaseConnection dataSource, ArrayList info)
         {
             string query = "SELECT * FROM " + MobileTableName.ColleagueInfo;
             return dataSource.PollingExecuteQuery_ObjectResult<ColleagueInfo>(query);
         }
-        public List<FriendInfo> FetchAllFriendInfo(DatabaseConnection dataSource, ArrayList info)
+        public static List<FriendInfo> FetchAllFriendInfo(DatabaseConnection dataSource, ArrayList info)
         {
             string query = "SELECT * FROM " + MobileTableName.FriendInfo;
             return dataSource.PollingExecuteQuery_ObjectResult<FriendInfo>(query);
+        }
+
+        public static List<Int64> FetchAllCallInfoCount_List(DatabaseConnection dataSource, ArrayList info)
+        {
+            try
+            {
+                string query = "SELECT COUNT(*) FROM " + MobileTableName.CallInfo;
+                return new List<Int64> { dataSource.PollingExecuteQuery_Count(query) };
+            }
+            catch (InvalidCastException)
+            {
+            }
+            return new List<Int64> { 0 };
+        }
+        public static List<Int64> FetchAllMessageInfoCount_List(DatabaseConnection dataSource, ArrayList info)
+        {
+            try
+            {
+                string query = "SELECT COUNT(*) FROM " + MobileTableName.MessageInfo;
+                return new List<Int64> { dataSource.PollingExecuteQuery_Count(query) };
+            }
+            catch (InvalidCastException)
+            {
+            }
+            return new List<Int64> { 0 };
         }
         #endregion
     }

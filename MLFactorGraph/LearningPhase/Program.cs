@@ -17,48 +17,35 @@ namespace LearningPhase
         {
             DatabaseConnection mobileDatabase = new DatabaseConnection("server=localhost;user id=research;password=research;database=fmobile_500");
 
-
-            /*MobileMLFGraph graph = new MobileMLFGraph(mobileDatabase);
+            MobileMLFGraph graph = new MobileMLFGraph(mobileDatabase);
             Console.WriteLine("Graph builded");
-            Console.ReadKey();
 
-            Console.WriteLine(graph.FactorFunction());
+            //Console.WriteLine(graph.EdgeLayer[0].UnitaryFactorFunction());
+
+            /*graph.OutputLambda();
             Console.ReadKey();*/
 
+            /*graph.OutputEdgeFactor();
+            Console.ReadKey()*/
 
-            /*MobileMLFGraph graph2 = new MobileMLFGraph(mobileDatabase);
-            Console.WriteLine("Graph builded");
-            Console.WriteLine(graph.FactorFunction());
-            Console.ReadKey();*/
+            BPGraph bpGraph = graph.BeliefPropagation(1000, MLFGraph.Layer.EdgeLayer);
 
+            var gradient = bpGraph.GetGradient();
+            OutputListDict(gradient);
+        }
 
-            /*object test1 = (int)1;
-            object test2 = (int)1;
-            Console.WriteLine(test1 == test2);
-            Console.ReadKey();*/
-
-
-            /*MobileMLFGraph dualGraph = new MobileMLFGraph(mobileDatabase, true);
-            Console.WriteLine("Dual Graph builded");
-            Console.ReadKey();
-
-            Node from = dualGraph.NodeLayer[0];
-            Node to = from.OutEdge[0].To;
-            Edge e = from.OutEdge[0];
-            Edge dualE = to.OutEdge[0];
-            if (e.DualEdge == dualE)
+        static void OutputListDict(List<Dictionary<short, double>> listDict)
+        {
+            int i = 0;
+            foreach (Dictionary<short, double> dict in listDict)
             {
-                Console.WriteLine("Dual Edge found");
-                e.Label = MobileLabel.UNKNOWN;
-                Console.WriteLine("Dual Edge Label changed to: " + dualE.Label);
-                dualE.Label = MobileLabel.NORELATION;
-                Console.WriteLine("Edge Label changed to: " + e.Label);
+                Console.Write("Dict {0}", i++);
+                foreach (KeyValuePair<short, double> pair in dict)
+                {
+                    Console.Write(" ({0}, {1})", pair.Key, pair.Value);
+                }
+                Console.WriteLine();
             }
-            Console.ReadKey();
-
-            Group g = dualGraph.GroupLayer[0];
-            Console.WriteLine(dualGraph.AddGroup(MobileLabel.UNKNOWN, g.Member.Select(x => x.Id).ToList()) == null);
-            Console.ReadKey();*/
         }
     }
 }

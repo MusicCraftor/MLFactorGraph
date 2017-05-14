@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MLFactorGraph
 {
-    interface ILayerNode
+    public interface ILayerNode
     {
         uint Id { get; }
         short Label { get; set; }
