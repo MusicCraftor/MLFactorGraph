@@ -4,17 +4,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{F401B9AB-BC46-473F-8D29-9000CCF64339}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{83955008-D5E9-42AC-A7E3-E390C3448750}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>LearningPhase</RootNamespace>
-    <AssemblyName>LearningPhase</AssemblyName>
+    <RootNamespace>MobileMLFGraph</RootNamespace>
+    <AssemblyName>MobileMLFGraph</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -24,7 +22,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -33,7 +30,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MySql.Data, Version=6.9.9.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -44,20 +40,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
+    <Compile Include="MobileConstants.cs" />
+    <Compile Include="MobileDataset.cs" />
+    <Compile Include="MobileMLFGraph.cs" />
+    <Compile Include="MobileStructure.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MLFactorGraph\MLFactorGraph.csproj">
       <Project>{9c2765c2-f0c5-46d3-9424-100531d35a6a}</Project>
       <Name>MLFactorGraph</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\MobileMLFGraph\MobileMLFGraph.csproj">
-      <Project>{83955008-d5e9-42ac-a7e3-e390c3448750}</Project>
-      <Name>MobileMLFGraph</Name>
     </ProjectReference>
     <ProjectReference Include="..\ResearchUtils\ResearchUtils.csproj">
       <Project>{e6ebbb54-9821-4344-9a72-1f3d6db8eda0}</Project>
